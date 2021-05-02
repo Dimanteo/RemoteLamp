@@ -9,8 +9,6 @@ rjmp int0
 
 reset:
 	cli
-	; ldi r16, 8
-	; out DDRB, r16
 	sbi DDRB, 4
 	ldi r16, 0x2F
 	out PORTB, r16
@@ -29,8 +27,6 @@ wait:
 
 int0:
 	cli
-	;ldi r16, 16
-	;out PINB, r16
 	sbi PINB, 4
 	sei
 	reti
