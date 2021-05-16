@@ -1,3 +1,4 @@
+; ATtiny13A
 .equ DDRB = 0x17
 .equ PINB = 0x16
 .equ PORTB = 0x18
@@ -27,6 +28,7 @@ wait:
 
 int0:
 	cli
+	; toggle pin
 	sbi PINB, 4
 	sei
 	reti
