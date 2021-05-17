@@ -11,6 +11,7 @@
 .equ TCCR0B = 0x33
 .equ OCR0A = 0x36
 .equ TIMSK = 0x39
+.equ CLKPR = 0x26
 .CSEG
 rjmp RESET
 rjmp INT0
@@ -36,7 +37,11 @@ rjmp T0COMPA; cmp match
 RESET:
         cli
         ser r17
-        clr r20
+        ; clock setup
+        ldi r16, 128
+        out CLKPR, r16
+        clr r16
+        out CLKPR, r16
         ; setup MCUCR 0010--10
         ldi r16, 0x22
         out MCUCR, r16
@@ -45,17 +50,23 @@ RESET:
         out GIMSK, r16
         ;setup ports
         out DDRB, r17
-        out PORTB, r17
         clr r16
+        out PORTB, r16
         out DDRD, r16
         out PORTD, r17
         ;setup timer
-        ldi r16, 0x42
+        ldi r16, 2
         out TCCR0A, r16
+        clr r16
+        out TCCR0B, r16
+        ldi r16, 1
+        out TIMSK, r16
+        clr r20
+        ; OCR0A setup
+        clr r18
+        out OCR0A, r18
         ldi r16, 1
         out TCCR0B, r16
-        clr r16
-        out TIMSK, r16
         sei
         rjmp wait
 
@@ -66,26 +77,30 @@ T0COMPA:
         cli
         cpi r18, 20
         ldi r18, 20
+        ser r16
         brne noaction
         ldi r18, 123
+        clr r16
         inc r20
 noaction:
         out OCR0A, r18
+        out PORTB, r16
         cpi r20, 10
         brne return
+        clr r20
         clr r16
-        out TIMSK, r16
+        out TCCR0B, r16
 return:
         sei
         reti
 
 INT0:
         cli
+        clr r20
         ; OCR0A setup
-        out PORTB, r17
-        ldi r18, 20
+        clr r18
         out OCR0A, r18
         ldi r16, 1
-        out TIMSK, r16
+        out TCCR0B, r16
         sei
         reti
