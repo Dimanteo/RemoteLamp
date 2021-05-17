@@ -27,23 +27,16 @@ nop
 nop
 rjmp T0COMPA; cmp match
 
-; r17 - FF
 ; r19 - TIMSK state
 ; r18 - PWM counter
+; r17 - FF
 ; r16 - temporary
-; Output signal goes to port B
+; Output signal goes to port PB2 - OC0A
 
 RESET:
         cli
         ser r17
-        ;setup timer
-        ldi r16, 0x3
-        out TCCR0A, r16
-        ldi r16, 0x5
-        out TCCR0B, r16
-        out OCR0A, r17  ; 0xFF
-        ldi r19, 1
-        out TIMSK, r19
+        clr r20
         ; setup MCUCR 0010--10
         ldi r16, 0x22
         out MCUCR, r16
@@ -52,10 +45,17 @@ RESET:
         out GIMSK, r16
         ;setup ports
         out DDRB, r17
+        out PORTB, r17
         clr r16
-        out PORTB, r16
         out DDRD, r16
         out PORTD, r17
+        ;setup timer
+        ldi r16, 0x42
+        out TCCR0A, r16
+        ldi r16, 1
+        out TCCR0B, r16
+        clr r16
+        out TIMSK, r16
         sei
         rjmp wait
 
@@ -64,26 +64,28 @@ wait:
 
 T0COMPA:
         cli
-        inc r18
-        cpi r18, 5
+        cpi r18, 20
+        ldi r18, 20
         brne noaction
-        ; toggle port B
-        out PINB, r17
-        clr r18
+        ldi r18, 123
+        inc r20
 noaction:
+        out OCR0A, r18
+        cpi r20, 10
+        brne return
+        clr r16
+        out TIMSK, r16
+return:
         sei
         reti
 
 INT0:
         cli
-        cpi r19, 1
-        breq isset
-        ldi r19, 1
-        rjmp leave
-isset:
-        clr r19
-        out PORTB, r19
-leave:
-        out TIMSK, r19
+        ; OCR0A setup
+        out PORTB, r17
+        ldi r18, 20
+        out OCR0A, r18
+        ldi r16, 1
+        out TIMSK, r16
         sei
         reti
